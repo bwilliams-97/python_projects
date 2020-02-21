@@ -1,4 +1,5 @@
 import argparse
+from typing import Union
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -8,17 +9,17 @@ from models import VanillaVAE
 
 def vae_loss_function(x: torch.tensor, reconstructed_x: torch.tensor, mu: torch.tensor, logvar: torch.tensor) -> torch.tensor:
 
-    bce_loss = F.binary_cross_entropy(reconstructed_x, x.view(-1)).sum()
+    bce_loss = torch.sum(F.binary_cross_entropy(reconstructed_x, x.view(-1, 784)))
 
     kl_divergence = -0.5 * torch.sum(-torch.exp(logvar) - mu.pow(2) + 1.0 + log_var)
 
     return bce_loss + kl_divergence
 
-def train(train_loader, model: VanillaVAE, **kwargs):
+def train(train_loader, model: Union[VanillaVAE], **kwargs):
 
     optimizer = torch.optim.Adam(model.parameters(), lr = kwargs["learning_rate"])
 
-    for epoch in tqdm.range(kwargs["epochs"]):
+    for epoch in tqdm.trange(kwargs["epochs"]):
         model.train()
 
         train_loss = 0
