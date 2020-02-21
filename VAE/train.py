@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 import tqdm
 from models import VanillaVAE
 
-def vae_loss_function(x: torch.tensor, reconstructed_x: torch.tensor, mu: torch.tensor, logvar: torch.tensor) -> torch.tensor:
+def vae_loss_function(reconstructed_x: torch.tensor, x: torch.tensor, mu: torch.tensor, logvar: torch.tensor) -> torch.tensor:
 
     bce_loss = torch.sum(F.binary_cross_entropy(reconstructed_x, x.view(-1, 784)))
 
-    kl_divergence = -0.5 * torch.sum(-torch.exp(logvar) - mu.pow(2) + 1.0 + log_var)
+    kl_divergence = -0.5 * torch.sum(-torch.exp(logvar) - mu.pow(2) + 1.0 + logvar)
 
     return bce_loss + kl_divergence
 

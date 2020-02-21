@@ -27,7 +27,7 @@ class VanillaVAE(nn.Module):
 
     def decode(self, z: torch.tensor) -> torch.tensor:
         hidden_3 = F.relu(self.forward_3(z))
-        return self.forward_4(hidden_3)
+        return torch.sigmoid(self.forward_4(hidden_3))
 
     def forward(self, x: torch.tensor) -> Tuple[torch.tensor]:
         # Flatten input image and encode to latent space
