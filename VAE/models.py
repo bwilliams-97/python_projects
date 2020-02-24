@@ -4,6 +4,17 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 class VAEBaseClass(nn.Module):
+    """
+    The VAE approximates the posterior over some latent variables by using an encoder and decoder.
+    
+    The generative decoder can produce outputs via p(x|z)p(z), with p(z) being a distribution that
+    is simple to sample from and p(x|z) modelled by the decoder network.
+
+    The encoder represents q(z|x). We constrain this posterior distribution to be of the Gaussian family,
+    but with mu and the log variance some complex function of the inputs that is learned by the encoder.
+
+    By reparameterising we are able to backpropagate through all of the component layers.
+    """
     def __init__(self, **kwargs):
         super(VAEBaseClass, self).__init__()
 
@@ -11,14 +22,23 @@ class VAEBaseClass(nn.Module):
         self.latent_size = kwargs["latent_size"]
     
     def encode(self):
+        """
+        Encoding layer maps from input space into the latent space.
+        """
         pass
 
     def reparameterise(self, mu: torch.tensor, logvar: torch.tensor) -> torch.tensor:
+        """
+        Sample from the latent distribution 
+        """
         eps = torch.randn(self.latent_size)
         std = torch.exp(0.5*logvar)
         return mu + eps*std
 
     def decode(self):
+        """
+        Decoding layer maps from latent space into the input space.
+        """
         pass
 
     def forward(self, x: torch.tensor) -> Tuple[torch.tensor]:
