@@ -2,7 +2,6 @@ import argparse
 from models import VanillaVAE
 import torch
 from torchvision import datasets, transforms
-from torchvision.utils import save_image
 from train import train
 
 if __name__ == "__main__":
@@ -13,7 +12,7 @@ if __name__ == "__main__":
     parser.add_argument("--learning_rate", type=int, default=1e-3)
     parser.add_argument("--model_type", type=str, default="vanilla")
     parser.add_argument("--device", type=str, default="cpu")
-    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--batch_size", type=int, default=128)
 
     args = parser.parse_args()
 
@@ -41,13 +40,7 @@ if __name__ == "__main__":
     # Train model
     train_kwargs = {
         "learning_rate": args.learning_rate,
-        "epochs" : args.epochs
+        "epochs" : args.epochs,
+        "device": args.device
     }
     train(train_loader, model.to(device), **train_kwargs)
-
-    # Generate sample images
-    with torch.no_grad():
-        sample = torch.randn(32, args.latent_size).to(device)
-        decoded_sample = model.decode(sample).cpu()
-        save_image(decoded_sample.view(32, 1, 28, 28),
-                    'results/image.png')
