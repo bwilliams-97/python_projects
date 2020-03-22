@@ -33,8 +33,7 @@ class Node:
         return self.id
 
     def __str__(self):
-        neighbours_string = str([(node.id, edge_cost) for node, edge_cost in self.neighbours.items()])
-        return ",".join([self.label, neighbours_string])
+        return self.label
 
 
 class Network:
