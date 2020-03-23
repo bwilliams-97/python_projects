@@ -1,4 +1,5 @@
 from network_generator import Network
+from copy import deepcopy
 
 class BaseRoutingAlgorithm:
     def __init__(self, network: Network):
@@ -10,6 +11,55 @@ class BaseRoutingAlgorithm:
 class BellmanFordRouter(BaseRoutingAlgorithm):
     def __init__(self, network: Network):
         super(BellmanFordRouter, self).__init__(network)
+
+    def find_shortest_paths(self, target_node_idx):
+        self.initialise(target_node_idx)
+
+        for i in range(len(self.network.nodes)):
+            self.iterate()
+
+        for node, path_detail in self.path_costs.items():
+            print(node.label, path_detail[0], str(path_detail[1]))
+
+    def find_path_to_target(self, start_node_idx):
+        start_node = self.network.nodes[start_node_idx]
+
+        path_cost = self.path_costs[start_node]
+        if path_cost[0] == float('inf'):
+            return "No connection between start node and target node"
+
+        shortest_path = []
+
+        next_node = self.path_costs[start_node][1]
+        shortest_path.append(next_node.label)
+
+        while next_node != self.target_node:
+            next_node = self.path_costs[next_node][1]
+            shortest_path.append(next_node.label)
+
+        return "->".join(shortest_path)
+
+    def initialise(self, target_node_idx: int):
+        self.target_node = self.network.nodes[target_node_idx]
+
+        self.path_costs = {}
+
+        for node in self.network.nodes:
+            # Trivial case
+            if node == self.target_node:
+                self.path_costs[node] = (0, node)
+                continue
+            
+            self.path_costs[node] = (node.neighbours[self.target_node], self.target_node) if self.target_node in node.neighbours else (float('inf'), -1)
+    
+    def iterate(self):
+        # Is this line working??
+        current_path_costs = deepcopy(self.path_costs)
+
+        for node in self.network.nodes:
+            for neighbour, edge_cost in node.neighbours.items():
+                if edge_cost + current_path_costs[neighbour][0] < current_path_costs[node][0]:
+                    self.path_costs[node] = (edge_cost + current_path_costs[neighbour][0], neighbour)
 
 class DijkstraRouter(BaseRoutingAlgorithm):
     def __init__(self, network: Network):
@@ -103,7 +153,8 @@ class DijkstraRouter(BaseRoutingAlgorithm):
 def main():
     network = Network(10, 1)
 
-    router = DijkstraRouter(network)
+    # router = DijkstraRouter(network)
+    router = BellmanFordRouter(network)
 
     router.find_shortest_paths(0)
 

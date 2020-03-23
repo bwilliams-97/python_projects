@@ -1,4 +1,5 @@
 import argparse
+import copy
 
 import numpy as np
 import graphviz
@@ -35,6 +36,11 @@ class Node:
     def __str__(self):
         return self.label
 
+    def __deepcopy__(self, memo):
+        copy_obj = type(self)(self.id)
+        memo[id(self)] = copy_obj
+        copy_obj.neighbours = copy.deepcopy(self.neighbours, memo)
+        return copy_obj
 
 class Network:
     def __init__(
