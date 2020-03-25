@@ -1,6 +1,6 @@
 # Routing algorithms
 
-This project implements well-known routing algorithms to find the shortest path between two nodes in a network.
+This project implements well-known routing algorithms to find the shortest path between two nodes in a network. 
 
 ### Network
 [network_generator](network_generator.py) contains the graph and node classes to generate a network with random initialisation, given a specified number of nodes and number of edge per node (a given node may finish with more edges than this - this is a proxy used for network generation). These can be visualised using graphviz.
