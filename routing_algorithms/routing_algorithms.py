@@ -1,41 +1,9 @@
 import argparse
 from copy import deepcopy
 from typing import Dict, Tuple, Union
-from abc import ABC, abstractmethod
 
+from base_routing_algorithm import BaseRoutingAlgorithm, ShortestPath
 from network_generator import Network, Node
-
-class BaseRoutingAlgorithm(ABC):
-    def __init__(self, network: Network):
-        self.network: Network = network
-
-    @abstractmethod
-    def find_shortest_paths(self, node_idx: int) -> None:
-        """
-        Find shortest paths from/to a specified node.
-        Should call initialise and iterate.
-        """
-        pass
-    
-    @abstractmethod
-    def initialise(self, node_idx: int) -> None:
-        pass
-
-    @abstractmethod
-    def iterate(self) -> None:
-        pass
-
-    @abstractmethod
-    def find_path_to_target(self, node_idx) -> str:
-        pass
-
-class ShortestPath():
-    def __init__(self, path_cost: float, path_node: Union[Node, int]):
-        """
-        Keep track of path details.
-        """
-        self.cost: float = path_cost # Cost of specified path
-        self.path_node: Node = path_node # Next node along path
 
 class BellmanFordRouter(BaseRoutingAlgorithm):
     def __init__(self, network: Network):
@@ -240,13 +208,13 @@ def main():
 
     if args.routing_algorithm == "dijkstra":
         router = DijkstraRouter(network)
-        router.find_shortest_paths(args.target_node_idx)
-        print("Shortest path: ", router.find_path_to_target(args.start_node_idx))
+        router.find_shortest_paths(args.start_node_idx)
+        print("Shortest path: ", router.find_path_to_target(args.target_node_idx))
 
     elif args.routing_algorithm == "bellman-ford":
         router = BellmanFordRouter(network)
-        router.find_shortest_paths(args.start_node_idx)
-        print("Shortest path: ", router.find_path_to_target(args.target_node_idx))
+        router.find_shortest_paths(args.target_node_idx)
+        print("Shortest path: ", router.find_path_to_target(args.start_node_idx))
 
     network.visualise_network(args.vis_output_location)
 
