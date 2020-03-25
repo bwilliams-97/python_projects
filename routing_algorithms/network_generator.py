@@ -70,10 +70,14 @@ class Network:
         for i, node in enumerate(self.nodes):
             # Generate edges without replacement from list of other nodes
             neighbour_indices = np.random.choice(
-                [node_id for node_id in range(self.num_nodes) if node_id != node.id], 
+                [
+                    other_node.id for other_node in self.nodes 
+                    if other_node.id != node.id and node not in other_node.neighbours
+                ], 
                 num_edges_per_node,
                 replace=False
                 )
+
             for neighbour_idx in neighbour_indices:
                 edge_cost = np.random.rand()
                 node.add_neighbour(self.nodes[neighbour_idx], edge_cost)
