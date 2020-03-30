@@ -6,13 +6,13 @@ class DCGenerator(nn.Module):
     Takes in a latent vector and outputs a synthetic image
     that should be in same distribution as original dataset.
     """
-    def __init__(self):
+    def __init__(self, latent_size, ngf, num_colours):
         super(DCGenerator, self).__init__()
 
         self.network = nn.Sequential(
             # Feed latent vector z into convolution
             # args: in_channels, out_channels, kernel_size, stride, padding
-            nn.ConvTranspose2d(nz, ngf*8, 4, 1, 0, bias=False)
+            nn.ConvTranspose2d(latent_size, ngf*8, 4, 1, 0, bias=False)
             nn.BatchNorm2d(ngf*8)
             nn.ReLU(True)
             # (ngf*8) x 4 x 4
@@ -48,7 +48,7 @@ class DCDiscriminator(nn.Module):
     Takes in an image and outputs the probability this image
     is from the original dataset.
     """
-    def __init__(self):
+    def __init__(self, ndf, num_colours):
         super(DCDiscriminator, self).__init__()
 
         self.network == nn.Sequential(

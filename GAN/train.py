@@ -1,33 +1,61 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision.utils import save_image
 
+def train(
+    generator: torch.nn.Module, 
+    discriminator: torch.nn.Module,
+    n_epochs: int,
+    fixed_noise: torch.tensor
+    ):
 
-for epoch in range(n_epochs):
-    for i, data in enumerate(dataloader, 0):
-        ###################################
-        # Update D
-        ###################################
-        discriminator.zero_grad()
+    criterion = nn.BCELoss()
 
-        output = discriminator(real_data)
-        error_real = criterion(output, label)
-        error_real.backward()
+    discriminator_optimiser = optim.Adam(discriminator.parameters(), lr=0.0002)
+    generator_optimiser = optim.Adam(generator.parameters(), lr=0.0002)
 
-        # train with fake
-        latent_noise = torch.randn(batch_size, nz, 1, 1)
-        fake = generator(latent_noise)
-        output = discriminator(fake.detach())
-        error_fake = criterion(output, label)
-        error_fake.backward()
+    for epoch in range(n_epochs):
+        for i, data in enumerate(dataloader, 0):
+            ###################################
+            # Update D
+            ###################################
+            discriminator.zero_grad()
 
-        total_error - error_real + error_fake
-        discriminator_optimiser.step()
+            real_data = data[0]
+            batch_size = real_data.size(0)
+            label = torch.ones((batch_size, ))
 
-        ###################################
-        # Update G
-        ###################################
-        generator.zero_grad()
+            output = discriminator(real_data)
+            error_real = criterion(output, label)
+            error_real.backward()
 
-        output = discriminator(fake)
-        error_gen = criterion(output, label)
-        error_gen.backward()
+            # train with fake
+            latent_noise = torch.randn(batch_size, nz, 1, 1)
+            fake = generator(latent_noise)
+            output = discriminator(fake.detach())
+            error_fake = criterion(output, label)
+            error_fake.backward()
 
-        generator_optimiser.step()
+            total_error = error_real + error_fake
+            discriminator_optimiser.step()
+
+            ###################################
+            # Update G
+            ###################################
+            generator.zero_grad()
+
+            output = discriminator(fake)
+            error_gen = criterion(output, label)
+            error_gen.backward()
+
+            generator_optimiser.step()
+
+            if i % 100 == 0:
+                save_image(real_cpu,
+                        '%s/real_samples.png' % "images",
+                        normalize=True)
+                fake = generator(fixed_noise)
+                save_image(fake.detach(),
+                        '%s/fake_samples_epoch_%03d.png' % ("images", epoch),
+                        normalize=True)
