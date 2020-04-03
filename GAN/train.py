@@ -2,12 +2,15 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision.utils import save_image
+from tqdm import tqdm
 
 def train(
     generator: torch.nn.Module, 
     discriminator: torch.nn.Module,
     n_epochs: int,
-    fixed_noise: torch.tensor
+    fixed_noise: torch.tensor,
+    train_loader: torch.utils.data.DataLoader,
+    latent_size: int
     ):
 
     criterion = nn.BCELoss()
@@ -16,7 +19,8 @@ def train(
     generator_optimiser = optim.Adam(generator.parameters(), lr=0.0002)
 
     for epoch in range(n_epochs):
-        for i, data in enumerate(dataloader, 0):
+        for i, data in enumerate(train_loader, 0):
+            print(i)
             ###################################
             # Update D
             ###################################
@@ -31,7 +35,7 @@ def train(
             error_real.backward()
 
             # train with fake
-            latent_noise = torch.randn(batch_size, nz, 1, 1)
+            latent_noise = torch.randn(batch_size, latent_size, 1, 1)
             fake = generator(latent_noise)
             output = discriminator(fake.detach())
             error_fake = criterion(output, label)
@@ -52,7 +56,7 @@ def train(
             generator_optimiser.step()
 
             if i % 100 == 0:
-                save_image(real_cpu,
+                save_image(real_data,
                         '%s/real_samples.png' % "images",
                         normalize=True)
                 fake = generator(fixed_noise)
