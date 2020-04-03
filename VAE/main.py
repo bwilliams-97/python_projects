@@ -7,12 +7,12 @@ from train import train
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="VAE example")
     parser.add_argument("--epochs", type=int, default=1000)
-    parser.add_argument("--input_size", type=int, default=784)
-    parser.add_argument("--latent_size", type=int, default=20)
-    parser.add_argument("--learning_rate", type=int, default=1e-3)
-    parser.add_argument("--model_type", type=str, default="vanilla")
+    parser.add_argument("--input-size", type=int, default=784)
+    parser.add_argument("--latent-size", type=int, default=20)
+    parser.add_argument("--learning-rate", type=int, default=1e-3)
+    parser.add_argument("--model-type", type=str, default="vanilla")
     parser.add_argument("--device", type=str, default="cpu")
-    parser.add_argument("--batch_size", type=int, default=128)
+    parser.add_argument("--batch-size", type=int, default=128)
 
     args = parser.parse_args()
 
