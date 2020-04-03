@@ -6,7 +6,7 @@ class DCGenerator(nn.Module):
     Takes in a latent vector and outputs a synthetic image
     that should be in same distribution as original dataset.
     """
-    def __init__(self, latent_size, ngf, n_colours):
+    def __init__(self, latent_size: int, ngf: int, n_colours: int):
         super(DCGenerator, self).__init__()
 
         self.network = nn.Sequential(
@@ -32,7 +32,7 @@ class DCGenerator(nn.Module):
             # n_colours x 28 x 28
         )
 
-    def forward(self, input):
+    def forward(self, input: torch.tensor):
         output = self.network(input)
         
         return output
@@ -42,7 +42,7 @@ class DCDiscriminator(nn.Module):
     Takes in an image and outputs the probability this image
     is from the original dataset.
     """
-    def __init__(self, ndf, n_colours):
+    def __init__(self, ndf: int, n_colours: int):
         super(DCDiscriminator, self).__init__()
 
         self.network = nn.Sequential(
@@ -65,7 +65,7 @@ class DCDiscriminator(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self, input):
+    def forward(self, input: torch.tensor):
         output = self.network(input)
         
         return output.view(-1, 1).squeeze(1)
