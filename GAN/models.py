@@ -6,7 +6,7 @@ class DCGenerator(nn.Module):
     Takes in a latent vector and outputs a synthetic image
     that should be in same distribution as original dataset.
     """
-    def __init__(self, latent_size, ngf, num_colours):
+    def __init__(self, latent_size, ngf, n_colours):
         super(DCGenerator, self).__init__()
 
         self.network = nn.Sequential(
@@ -27,9 +27,9 @@ class DCGenerator(nn.Module):
             nn.ReLU(True),
             # # (ngf) x 14 x 14
             
-            nn.ConvTranspose2d(ngf, num_colours, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(ngf, n_colours, 4, 2, 1, bias=False),
             nn.Tanh()
-            # num_colours x 28 x 28
+            # n_colours x 28 x 28
         )
 
     def forward(self, input):
@@ -42,12 +42,12 @@ class DCDiscriminator(nn.Module):
     Takes in an image and outputs the probability this image
     is from the original dataset.
     """
-    def __init__(self, ndf, num_colours):
+    def __init__(self, ndf, n_colours):
         super(DCDiscriminator, self).__init__()
 
         self.network = nn.Sequential(
-            # input is num_colours x 28 x 28
-            nn.Conv2d(num_colours, ndf, 4, 2, 1, bias=False),
+            # input is n_colours x 28 x 28
+            nn.Conv2d(n_colours, ndf, 4, 2, 1, bias=False),
             nn.LeakyReLU(0.2, inplace=True),
 
             # (ndf) x 14 x 14
