@@ -32,6 +32,22 @@ def vae_loss_function(reconstructed_x: torch.tensor, x: torch.tensor, mu: torch.
 
     return bce_loss + kl_divergence
 
+def encode_one_hot(n_classes: int, class_idx: torch.tensor) -> torch.tensor:
+    """
+    Takes in numeric class labels and returns one-hot encoding tensor.
+
+    Parameters:
+        n_classes (int): Number of unique classes.
+        class_idx (torch.tensor): (D x 1) tensor of class labels.
+    """
+    assert class_idx.shape[1] == 1
+    assert torch.max(class_idx).item() < n_classes
+
+    one_hot_encoding = torch.zeros(class_idx.shape[0], n_classes)
+    one_hot_encoding.scatter_(1, class_idx.data, 1)
+
+    return one_hot_encoding
+
 def train(train_loader: torch.utils.data.DataLoader, model: Union[VanillaVAE], **kwargs):
     """
     Train model and generate sample images after each epoch.
@@ -45,17 +61,21 @@ def train(train_loader: torch.utils.data.DataLoader, model: Union[VanillaVAE], *
     """
 
     optimizer = torch.optim.Adam(model.parameters(), lr = kwargs["learning_rate"])
+    n_classes = kwargs["n_classes"]
 
     for epoch in tqdm.trange(kwargs["epochs"]):
         model.train()
 
         train_loss = 0
 
-        for batch_idx, (data, _) in enumerate(train_loader):
+        for batch_idx, (data, labels) in enumerate(train_loader):
             optimizer.zero_grad()
             
             # Forward pass
-            reconstructed, mu, logvar = model(data)
+            if kwargs["model_type"] == "vanilla":
+                reconstructed, mu, logvar = model(data)
+            elif kwargs["model_type"] == "conditional":
+                reconstructed, mu, logvar = model(data, encode_one_hot(n_classes, labels.view(-1,1)))
 
             # Backpropagate loss
             loss = vae_loss_function(reconstructed, data, mu, logvar)
@@ -71,18 +91,20 @@ def train(train_loader: torch.utils.data.DataLoader, model: Union[VanillaVAE], *
                 ))
 
         # Write model test output for this epoch
-        save_epoch_image(model, epoch, kwargs["device"])
+        save_epoch_image(model, epoch, kwargs["device"], kwargs["model_type"], n_classes)
 
     print("Epoch: {}, Average loss: {:.4g}".format(
         epoch, train_loss/len(train_loader.dataset)))
 
-def save_epoch_image(model: Union[VanillaVAE], epoch: int, device: torch.device):
+def save_epoch_image(model: Union[VanillaVAE], epoch: int, device: torch.device, model_type: str, n_classes: int):
     """
     Generate sample images and save to file.
     Parameters:
         model (Union[VanillaVAE]): VAE that generates samples.
         epoch (int): Optimisation iteration of training.
         device (torch.device): Device to train on (cpu or cuda)
+        model_type (str): Type of VAE.
+        n_classes (int): Number of possible label classes.
     Returns:
         None
     """
@@ -90,7 +112,14 @@ def save_epoch_image(model: Union[VanillaVAE], epoch: int, device: torch.device)
     # Generate sample images
     with torch.no_grad():
         sample = torch.randn(32, model.latent_size).to(device)
-        decoded_sample = model.decode(sample).cpu()
+        import pdb; pdb.set_trace()
+        if model_type == "vanilla":
+            decoded_sample = model.decode(sample).cpu()
+        elif model_type == "conditional":
+            class_labels = torch.randint(0, n_classes, (32, 1)).to(device)
+            one_hot_encoding = encode_one_hot(n_classes, class_labels)
+            decoded_sample = model.decode(torch.cat((sample, one_hot_encoding), dim=1))
+
         save_image(decoded_sample.view(32, 1, 28, 28),
                     'results/image_' + str(epoch) + '.png')
 

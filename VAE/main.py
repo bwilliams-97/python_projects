@@ -1,5 +1,5 @@
 import argparse
-from models import VanillaVAE
+from models import VanillaVAE, ConditionalVAE
 import torch
 from torchvision import datasets, transforms
 from train import train
@@ -13,6 +13,7 @@ if __name__ == "__main__":
     parser.add_argument("--model-type", type=str, default="vanilla")
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--batch-size", type=int, default=128)
+    parser.add_argument("--n-classes", type=int, default=10)
 
     args = parser.parse_args()
 
@@ -29,6 +30,9 @@ if __name__ == "__main__":
 
     if args.model_type == "vanilla":
         model = VanillaVAE(**model_kwargs)
+    elif args.model_type == "conditional":
+        model_kwargs.update({"n_classes": 10})
+        model = ConditionalVAE(**model_kwargs)
 
     # Load MNIST dataset
     train_loader = torch.utils.data.DataLoader(
@@ -41,6 +45,8 @@ if __name__ == "__main__":
     train_kwargs = {
         "learning_rate": args.learning_rate,
         "epochs" : args.epochs,
-        "device": args.device
+        "device": args.device,
+        "model_type": args.model_type,
+        "n_classes": args.n_classes
     }
     train(train_loader, model.to(device), **train_kwargs)

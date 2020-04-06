@@ -67,3 +67,29 @@ class VanillaVAE(VAEBaseClass):
     def decode(self, z: torch.tensor) -> torch.tensor:
         hidden_3 = F.relu(self.forward_3(z))
         return torch.sigmoid(self.forward_4(hidden_3))
+
+class ConditionalVAE(VanillaVAE):
+    def __init__(self, **kwargs):
+        super(ConditionalVAE, self).__init__(**kwargs)
+        self.n_classes = kwargs["n_classes"]
+
+        # Overwrite layers to include one-hot encoding of classes.
+        self.forward_1 = nn.Linear(self.input_size + self.n_classes, 400)
+        self.forward_21 = nn.Linear(400, self.latent_size)
+        self.forward_22 = nn.Linear(400, self.latent_size)
+        self.forward_3 = nn.Linear(self.latent_size + self.n_classes, 400)
+        self.forward_4 = nn.Linear(400, self.input_size)
+
+    def forward(self, x: torch.tensor, y: torch.tensor) -> Tuple[torch.tensor]:
+        # Flatten image
+        x = x.view(-1, self.input_size)
+        # Concatenate class label with input image
+        x = torch.cat((x, y), dim=1)
+        # Encode to latent space
+        mu, logvar = self.encode(x)
+        # Generate samples from latent distribution
+        z = self.reparameterise(mu, logvar)
+        # Concatenate class label with latent vector
+        z = torch.cat((z, y), dim=1)
+        # Decode back into input space
+        return self.decode(z), mu, logvar
