@@ -73,12 +73,9 @@ class ConditionalVAE(VanillaVAE):
         super(ConditionalVAE, self).__init__(**kwargs)
         self.n_classes = kwargs["n_classes"]
 
-        # Overwrite layers to include one-hot encoding of classes.
+        # Overwrite relevant layers to include one-hot encoding of classes.
         self.forward_1 = nn.Linear(self.input_size + self.n_classes, 400)
-        self.forward_21 = nn.Linear(400, self.latent_size)
-        self.forward_22 = nn.Linear(400, self.latent_size)
         self.forward_3 = nn.Linear(self.latent_size + self.n_classes, 400)
-        self.forward_4 = nn.Linear(400, self.input_size)
 
     def forward(self, x: torch.tensor, y: torch.tensor) -> Tuple[torch.tensor]:
         # Flatten image
