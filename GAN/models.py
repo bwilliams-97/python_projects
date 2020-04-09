@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.nn import functional as F
 
 class DCGenerator(nn.Module):
     """
@@ -32,8 +33,8 @@ class DCGenerator(nn.Module):
             # n_colours x 28 x 28
         )
 
-    def forward(self, input: torch.tensor):
-        output = self.network(input)
+    def forward(self, z: torch.tensor):
+        output = self.network(z)
         
         return output
 
@@ -69,3 +70,39 @@ class DCDiscriminator(nn.Module):
         output = self.network(input)
         
         return output.view(-1, 1).squeeze(1)
+
+class ConditionalGenerator(nn.Module):
+    def __init__(self, latent_size: int, n_classes: int, input_size: int):
+        super(ConditionalGenerator, self).__init__()
+
+        self.input_size = input_size
+
+        self.forward_1 = nn.Linear(latent_size + n_classes, 400)
+        self.forward_2 = nn.Linear(400, self.input_size)
+
+    def forward(self, z: torch.tensor, label: torch.tensor):
+        # Concatenate class labels with latent vector
+        z = torch.cat((z, label), dim=1)
+
+        hidden_1 = F.relu(self.forward_1(z))
+        return torch.sigmoid(self.forward_2(hidden_1))
+
+class ConditionalDiscriminator(nn.Module):
+    def __init__(self, n_classes: int, input_size: int):
+        super(ConditionalDiscriminator, self).__init__()
+
+        self.input_size = input_size
+
+        self.forward_1 = nn.Linear(self.input_size + n_classes, 400)
+        self.forward_2 = nn.Linear(400, 32)
+        self.forward_3 = nn.Linear(32, 1)
+
+    def forward(self, x: torch.tensor, label: torch.tensor):
+        # Flatten image
+        x = x.view(-1, self.input_size)
+        # Concatenate class label with input image
+        x = torch.cat((x, label), dim=1)
+
+        hidden_1 = F.relu(self.forward_1(x))
+        hidden_2 = F.relu(self.forward_2(hidden_1))
+        return torch.sigmoid(self.forward_3(hidden_2))
