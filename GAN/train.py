@@ -48,6 +48,7 @@ def train(
         fixed_noise (torch.tensor): Fixed noise vector that is used to generate saved images
             for generator assessment.
         n_classes (int): Number of unique image classes.
+        model_type (str): dcgan or condional.
     """
 
     criterion = nn.BCELoss()
