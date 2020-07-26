@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 
 
-def VanillaODEFunc(nn.Module):
+class VanillaODEFunc(nn.Module):
     def __init__(self, state_size: int):
-        super(ODEFunc, self).__init__()
+        super(VanillaODEFunc, self).__init__()
 
         self.basic_net = nn.Sequential(
             nn.Linear(state_size, 50),
