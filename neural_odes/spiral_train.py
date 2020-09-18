@@ -1,9 +1,11 @@
 from typing import Callable
+import argparse
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchdiffeq import odeint
+from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
@@ -17,6 +19,18 @@ class SpiralODE(ODESystem):
 
     def forward(self, t: torch.tensor, y: torch.tensor) -> torch.tensor:
         return torch.mm(y**3, self.A)
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description='Generate network.')
+
+    parser.add_argument("--num_iterations", type=int, default=1000)
+    parser.add_argument("--data_size", type=int, default=1000)
+    parser.add_argument("--batch_timesteps", type=int, default=10)
+    parser.add_argument("--batch_size", type=int, default=20)
+    parser.add_argument("--output_dir", type=str, default="fig")
+
+    args = parser.parse_args()
+    return args
 
 
 class BatchSpec:
@@ -34,7 +48,8 @@ def generate_points(num_timesteps: int, t_end: int, y_0: torch.tensor, ode_syste
 
 
 def get_batch_y(data_size: int, batch_timesteps: int, batch_size: int, y_true: torch.tensor, t: torch.tensor):
-    d_points = torch.from_numpy(np.random.choice(np.arange(data_size - batch_timesteps), batch_size, replace=False))
+    d_points = torch.from_numpy(np.random.choice(np.arange(data_size - batch_timesteps), batch_size, replace=False)
+                               ).type(torch.long)
 
     y_0_batch = y_true[d_points]
     t_batch = t[:batch_timesteps]
@@ -70,15 +85,15 @@ def test_step(
     y_true: torch.tensor,
     t: torch.tensor,
     iteration: int,
-    ax: plt.axes.Axes
+    ax: Axes
 ) -> None:
     with torch.no_grad():
         y_pred = odeint(ode_model, y_0, t)
         loss = loss_function(y_pred, y_true)
-
+        ax.clear()
         ax.plot(y_pred[:, 0, 0], y_pred[:, 0, 1], 'r', y_true[:, 0, 0], y_true[:, 0, 1], 'b')
         plt.draw()
-        plt.savefig(f"iter_{iteration}.png")
+        plt.savefig(f"fig/iter_{iteration}.png")
         plt.pause(0.001)
 
         print(f"Iteration: {iteration}, Loss: {loss}")
@@ -107,23 +122,20 @@ def train_model(
 
 
 def main():
-    num_iterations = 2000
-    data_size = 1000
-    batch_timesteps = 10
-    batch_size = 20
+    args = parse_args()
 
     ode_model = VanillaODEFunc(state_size = 2)
-    batch_spec = BatchSpec(data_size, batch_timesteps, batch_size)
+    batch_spec = BatchSpec(args.data_size, args.batch_timesteps, args.batch_size)
 
 
     y_0 = torch.tensor([[2., 0.]])
-    t = torch.linspace(0., 25., data_size)
+    t = torch.linspace(0., 25., args.data_size)
     true_A = torch.tensor([[-0.1, 2.0], [-2.0, -0.1]])
     ode_system = SpiralODE(true_A)
 
-    y_true = generate_points(data_size, 25.0, y_0, ode_system)
+    y_true = generate_points(args.data_size, 25.0, y_0, ode_system)
 
-    train_model(num_iterations, ode_model, y_0, y_true, t, batch_spec)
+    train_model(args.num_iterations, ode_model, y_0, y_true, t, batch_spec)
 
 
 if __name__ == "__main__":
