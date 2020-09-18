@@ -1,2 +1,10 @@
 # Neural ODEs
 
+Implements spiral reconstruction demo as described in Neural Ordinary Differential Equations [arxiv link](https://arxiv.org/pdf/1806.07366.pdf). Rather than learning a relationship between individual samples, the aim of a Neural ODE is to learn the underlying derivative that determines state transitions. Full details can be seen in the original paper.
+
+## Basic demo steps
+1. Generate set of points for a state-space system based on an initial condition and state matrix (making use of [torchdiffeq](https://github.com/rtqichen/torchdiffeq) odeint function). The system must be contained within a PyTorch Module (forward pass implements state space description).
+2. Initialise a PyTorch model with neural structure, that will parameterise the derivative.
+3. Train model with odeint function, replacing true system with our neural parameterisation (another PyTorch Module). Each batch is a different subset of the original state trajectory.
+4. Backprop loss as normal.
+5. The test function plots the model trajectory vs the true trajectory each epoch for comparison.

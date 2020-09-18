@@ -19,7 +19,9 @@ class SpiralODE(ODESystem):
     """
     Torch module that generates trajectory based on ODE.
     """
-    def __init__(self, A: torch.tensor):
+    def __init__(self):
+        # State matrix
+        A = torch.tensor([[-0.1, 2.0], [-2.0, -0.1]])
         super(SpiralODE, self).__init__(A)
 
     def forward(self, t: torch.tensor, y: torch.tensor) -> torch.tensor:
@@ -182,10 +184,8 @@ def main():
 
     # Initial condition
     y_0 = torch.tensor([[2., 0.]])
-    # State matrix
-    true_A = torch.tensor([[-0.1, 2.0], [-2.0, -0.1]])
     # ODE system module
-    ode_system = SpiralODE(true_A)
+    ode_system = SpiralODE()
 
     # Generate points along trajectory starting from initial condition
     t, y_true = generate_points(args.total_timesteps, args.time_end, y_0, ode_system)
