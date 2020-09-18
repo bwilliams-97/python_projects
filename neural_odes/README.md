@@ -9,5 +9,7 @@ Implements spiral reconstruction demo as described in [Neural Ordinary Different
 4. Backprop loss as normal. This is done by solving another ODE backwards in time using the adjoint sensitivity method (see paper).
 5. The test function plots the model trajectory vs the true trajectory each epoch for comparison.
 
+Currently only the VanillaODEFunc is implemented, but deeper PyTorch models could be used.
+
 ## Interest in timeseries modelling
 Neural ODEs have no requirement for data to arrive at fixed intervals, which removes the need for resampling (as with current timeseries modelling with RNN/CNN based models). Watch this space...
