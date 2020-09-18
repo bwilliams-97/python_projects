@@ -123,7 +123,7 @@ def train_step(ode_model: VanillaODEFunc, optimiser: torch.optim.Optimizer, loss
 
 
 def test_step(ode_model: VanillaODEFunc, loss_function: Callable, y_0: torch.tensor, y_true: torch.tensor,
-              t: torch.tensor, epoch: int, output_ax: Axes) -> None:
+              t: torch.tensor, epoch: int, output_ax: Axes, output_dir: Path) -> None:
     """
     Plot ODE output based on a given initial point (y_0) and known system dynamics (y_true). Save figure.
     @param ode_model: Torch Module used to parameterise the ODE system.
@@ -133,6 +133,7 @@ def test_step(ode_model: VanillaODEFunc, loss_function: Callable, y_0: torch.ten
     @param t: Tensor of timesteps.
     @param epoch: Number of current epoch.
     @param output_ax: Axes instance to plot trajectory on.
+    @param output_dir: Directory to save figures to.
     """
     with torch.no_grad():
         y_pred = odeint(ode_model, y_0, t)
@@ -140,14 +141,14 @@ def test_step(ode_model: VanillaODEFunc, loss_function: Callable, y_0: torch.ten
         output_ax.clear()
         output_ax.plot(y_pred[:, 0, 0], y_pred[:, 0, 1], 'r', y_true[:, 0, 0], y_true[:, 0, 1], 'b')
         plt.draw()
-        plt.savefig(f"fig/iter_{epoch}.png")
+        plt.savefig(output_dir / f"iter_{epoch}.png")
         plt.pause(0.001)
 
         print(f"epoch: {epoch}, Loss: {loss}")
 
 
 def train_model(num_epochs: int, ode_model: VanillaODEFunc, y_0: torch.tensor, y_true: torch.tensor,
-                t: torch.tensor, batch_spec: BatchSpec) -> None:
+                t: torch.tensor, batch_spec: BatchSpec, output_dir: Path) -> None:
     """
     Train model for given number epochs to learn system dynamics.
     @param ode_model: Torch Module used to parameterise the ODE system.
@@ -156,6 +157,7 @@ def train_model(num_epochs: int, ode_model: VanillaODEFunc, y_0: torch.tensor, y
     @param y_true: True ODE output for a particular timestep.
     @param t: Set of timepoint indices.
     @param batch_spec: Specification of batch to use (BatchSpec instance).
+    @param output_dir: Directory to save figures to.
     """
     optimiser = torch.optim.Adam(ode_model.parameters())
     loss_function = nn.L1Loss()
@@ -168,14 +170,15 @@ def train_model(num_epochs: int, ode_model: VanillaODEFunc, y_0: torch.tensor, y
         train_step(ode_model, optimiser, loss_function, y_true, t, batch_spec)
 
         if epoch % 20 == 0:
-            test_step(ode_model, loss_function, y_0, y_true, t, epoch, ax_traj)
+            test_step(ode_model, loss_function, y_0, y_true, t, epoch, ax_traj, output_dir)
 
 
 def main():
     args = parse_args()
 
     # Generate output directory
-    os.makedirs(args.output_dir, exist_ok=True)
+    output_dir = Path(args.output_dir)
+    os.makedirs(output_dir, exist_ok=True)
 
     # Declare ODE model to use
     ode_model = VanillaODEFunc(state_size = 2)
@@ -191,7 +194,7 @@ def main():
     t, y_true = generate_points(args.total_timesteps, args.time_end, y_0, ode_system)
 
     # Train model to learn system dynamics
-    train_model(args.num_epochs, ode_model, y_0, y_true, t, batch_spec)
+    train_model(args.num_epochs, ode_model, y_0, y_true, t, batch_spec, output_dir)
 
 
 if __name__ == "__main__":
