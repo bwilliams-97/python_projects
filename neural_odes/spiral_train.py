@@ -81,15 +81,16 @@ def get_batch_y(total_timesteps: int, batch_timesteps: int, batch_size: int, y_t
     @param t: Torch tensor of timesteps.
     """
     # Select a random set of starting points from which to get system trajectory.
-    d_points = torch.from_numpy(np.random.choice(np.arange(total_timesteps - batch_timesteps), batch_size, replace=False)
-                               ).type(torch.long)
+    initial_timesteps = torch.from_numpy(
+        np.random.choice(np.arange(total_timesteps - batch_timesteps), batch_size, replace=False)
+    ).type(torch.long)
 
     # Set of initial conditions for the batch
-    y_0_batch = y_true[d_points]
+    y_0_batch = y_true[initial_timesteps]
     # Set of timesteps to use (currently zero indexed).
     t_batch = t[:batch_timesteps]
-    # Select subset of trajectory for each batch starting from d_points and extending for batch_timesteps.
-    y_batch = torch.stack([y_true[d_points + i] for i in range(batch_timesteps)], dim=0)
+    # Select subset of trajectory for each batch starting from initial_timesteps and extending for batch_timesteps.
+    y_batch = torch.stack([y_true[initial_timesteps + i] for i in range(batch_timesteps)], dim=0)
 
     return y_0_batch, t_batch, y_batch
 
