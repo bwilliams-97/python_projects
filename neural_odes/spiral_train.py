@@ -59,7 +59,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def generate_points(num_timesteps: int, t_end: int, y_0: torch.tensor, ode_system: ODESystem
-                ) -> Tuple[torch.tensor, torch.tensor]:
+                   ) -> Tuple[torch.tensor, torch.tensor]:
     """
     Generate points from ODE system using a set number timesteps and an initial condition y_0.
     @param num_timesteps: Number of timesteps to generate points from.
@@ -73,7 +73,8 @@ def generate_points(num_timesteps: int, t_end: int, y_0: torch.tensor, ode_syste
     return t, y_true
 
 
-def get_batch_y(total_timesteps: int, batch_timesteps: int, batch_size: int, y_true: torch.tensor, t: torch.tensor):
+def get_batch_y(total_timesteps: int, batch_timesteps: int, batch_size: int, y_true: torch.tensor, t: torch.tensor
+               ) -> Tuple[torch.tensor, torch.tensor, torch.tensor]:
     """
     Get a particular batch by selecting subsections of the trajectory in y_true.
     @param total_timesteps: Total number of timesteps in trajectory.
