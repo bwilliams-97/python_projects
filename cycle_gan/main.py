@@ -95,8 +95,6 @@ def main():
     lego_dataset = CGImageDataset(lego_images)
     house_images = CGImageDataset(house_images)
 
-    breakpoint()
-
 
 if __name__ == "__main__":
     main()
