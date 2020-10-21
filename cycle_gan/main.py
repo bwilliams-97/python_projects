@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 from data_io import CGImageDataset
 from train import train
+from models import ImageGenerator, ImageDiscriminator
 
 
 CYCLE_GAN_PATH = Path(os.path.abspath(__file__)).parent
@@ -49,19 +50,35 @@ def find_files_with_extension(directory: Path, extension: str) -> List[str]:
 
 
 def main():
+    image_size = 512
+
+    output_dir = CYCLE_GAN_PATH / Path("output_img")
+    os.makedirs(output_dir, exist_ok=True)
+
     lego_image_dir = CYCLE_GAN_PATH / Path("lego_houses")
-    house_image_dir = CYCLE_GAN_PATH / Path("houses")
+    house_image_dir = CYCLE_GAN_PATH / Path("houses")    
 
     lego_images = load_image_data(lego_image_dir)
     house_images = load_image_data(house_image_dir)
 
-    lego_dataset = CGImageDataset(lego_images)
-    lego_dataloader = DataLoader(lego_dataset, batch_size=32, shuffle=True)
+    dataset = CGImageDataset(lego_images, house_images, image_size=image_size)
+    dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-    house_dataset = CGImageDataset(house_images)
-    house_dataloader = DataLoader(house_dataset, batch_size=32, shuffle=True)
+    lego_generator = ImageGenerator(image_size=image_size)
+    house_generator = ImageGenerator(image_size=image_size)
 
-    train(lego_dataloader, house_dataloader, learning_rate=1e-3, n_epochs=10)
+    lego_discriminator = ImageDiscriminator(image_size=image_size)
+    house_discriminator = ImageDiscriminator(image_size=image_size)
+
+    cycle_gan_networks = {
+        "lego_generator": lego_generator,
+        "house_generator": house_generator,
+        "lego_discriminator": lego_discriminator,
+        "house_discriminator": house_discriminator
+    }
+
+    train(dataloader, lego_generator, house_generator, lego_discriminator, house_discriminator,
+          learning_rate=1e-3, n_epochs=10, cycle_lambda=1e-3, output_dir=output_dir)
 
 
 if __name__ == "__main__":
