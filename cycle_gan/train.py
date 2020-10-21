@@ -29,7 +29,8 @@ def train(
 
     for epoch in tqdm(range(kwargs["n_epochs"])):
         for i, data in enumerate(trainloader):
-            print(epoch)
+            print(f"Epoch: {epoch}, Batch: {i}", end='\r')
+            
             lego_images, house_images = data[0], data[1]
 
             # Optimise generators first

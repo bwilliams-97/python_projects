@@ -62,20 +62,13 @@ def main():
     house_images = load_image_data(house_image_dir)
 
     dataset = CGImageDataset(lego_images, house_images, image_size=image_size)
-    dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
 
     lego_generator = ImageGenerator(image_size=image_size)
     house_generator = ImageGenerator(image_size=image_size)
 
     lego_discriminator = ImageDiscriminator(image_size=image_size)
     house_discriminator = ImageDiscriminator(image_size=image_size)
-
-    cycle_gan_networks = {
-        "lego_generator": lego_generator,
-        "house_generator": house_generator,
-        "lego_discriminator": lego_discriminator,
-        "house_discriminator": house_discriminator
-    }
 
     train(dataloader, lego_generator, house_generator, lego_discriminator, house_discriminator,
           learning_rate=1e-3, n_epochs=10, cycle_lambda=1e-3, output_dir=output_dir)
