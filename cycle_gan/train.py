@@ -27,11 +27,13 @@ def train(
     generator_optimiser = optim.Adam(itertools.chain(lego_generator.parameters(), house_generator.parameters()), lr=learning_rate)
     discriminator_optimiser = optim.Adam(itertools.chain(lego_discriminator.parameters(), house_discriminator.parameters()), lr=learning_rate)
 
+    device = kwargs["device"]
+
     for epoch in tqdm(range(kwargs["n_epochs"])):
         for i, data in enumerate(trainloader):
             print(f"Epoch: {epoch}, Batch: {i}", end='\r')
             
-            lego_images, house_images = data[0], data[1]
+            lego_images, house_images = data[0].to(device), data[1].to(device)
 
             # Optimise generators first
             set_grad([lego_discriminator, house_discriminator], False)
@@ -47,7 +49,7 @@ def train(
             house_fake_dis = house_discriminator(house_fake)
             lego_fake_dis = lego_discriminator(lego_fake)
 
-            real_label = torch.ones(house_fake_dis.size())
+            real_label = torch.ones(house_fake_dis.size()).to(device)
 
             house_gen_loss = adversarial_criterion(house_fake_dis, real_label)
             lego_gen_loss = adversarial_criterion(lego_fake_dis, real_label)
@@ -64,16 +66,16 @@ def train(
             set_grad([lego_discriminator, house_discriminator], True)
             discriminator_optimiser.zero_grad()
 
-            house_fake = torch.tensor(house_fake.data.numpy())
-            lego_fake = torch.tensor(lego_fake.data.numpy())
+            house_fake = torch.tensor(house_fake.data.cpu().numpy()).to(device)
+            lego_fake = torch.tensor(lego_fake.data.cpu().numpy()).to(device)
 
             house_real_dis = house_discriminator(house_images)
             house_fake_dis = house_discriminator(house_fake)
             lego_real_dis = lego_discriminator(lego_images)
             lego_fake_dis = lego_discriminator(lego_fake)
 
-            real_label = torch.ones(house_real_dis.size())
-            fake_label = torch.zeros(house_fake_dis.size())
+            real_label = torch.ones(house_real_dis.size()).to(device)
+            fake_label = torch.zeros(house_fake_dis.size()).to(device)
 
             house_dis_real_loss = adversarial_criterion(house_real_dis, real_label)
             house_dis_fake_loss = adversarial_criterion(house_fake_dis, fake_label)

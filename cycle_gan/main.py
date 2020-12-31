@@ -27,7 +27,7 @@ def load_image_data(directory: Path) -> List[np.ndarray]:
     image_files.extend(find_files_with_extension(directory, "png"))
 
     image_list = []
-    
+
     print(f"Loading image files from directory {directory.name}...")
     for image_file in tqdm(image_files):
         im = Image.open(image_file)
@@ -43,8 +43,9 @@ def find_files_with_extension(directory: Path, extension: str) -> List[str]:
     @param extension: File extension (e.g. jpg).
     @returns list of file paths of interest.
     """
+    dir_connect = "\\" if os.name == "nt" else "/"
     # Template for filepath, some_directory\\some_filepath.extension
-    ext_file_path = ''.join([str(directory), f"\\*.{extension}"])
+    ext_file_path = ''.join([str(directory), dir_connect, f"*.{extension}"])
     
     return glob(ext_file_path)
 
@@ -55,6 +56,9 @@ def main():
     output_dir = CYCLE_GAN_PATH / Path("output_img")
     os.makedirs(output_dir, exist_ok=True)
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # change to args
+    train_loader_kwargs = {'num_workers': 1, 'pin_memory': True} if device=="cuda" else {}
+
     lego_image_dir = CYCLE_GAN_PATH / Path("lego_houses")
     house_image_dir = CYCLE_GAN_PATH / Path("houses")    
 
@@ -62,16 +66,16 @@ def main():
     house_images = load_image_data(house_image_dir)
 
     dataset = CGImageDataset(lego_images, house_images, image_size=image_size)
-    dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=2, shuffle=True, **train_loader_kwargs)
 
-    lego_generator = ImageGenerator(image_size=image_size)
-    house_generator = ImageGenerator(image_size=image_size)
+    lego_generator = ImageGenerator(image_size=image_size).to(device)
+    house_generator = ImageGenerator(image_size=image_size).to(device)
 
-    lego_discriminator = ImageDiscriminator(image_size=image_size)
-    house_discriminator = ImageDiscriminator(image_size=image_size)
+    lego_discriminator = ImageDiscriminator(image_size=image_size).to(device)
+    house_discriminator = ImageDiscriminator(image_size=image_size).to(device)
 
     train(dataloader, lego_generator, house_generator, lego_discriminator, house_discriminator,
-          learning_rate=1e-3, n_epochs=10, cycle_lambda=1e-3, output_dir=output_dir)
+          learning_rate=1e-3, n_epochs=10, cycle_lambda=1e-3, output_dir=output_dir, device=device)
 
 
 if __name__ == "__main__":
